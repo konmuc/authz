@@ -50,49 +50,78 @@ export function can(role, permission, params = {}) {
 }
 
 export default function configure({ roles }) {
-
+    
+    // Check if role is an object.
     if (typeof roles !== 'object') {
         throw new Error('Expected parameter to be type of object : roles');
     }
 
+    // clear role defintions.
     $roles.clear();
 
-    Object.keys(roles).forEach(role =>  {
-        const can = {}, inherits = [];
-        
+    // Iterate all keys of roles
+    Object.keys(roles).forEach(role =>  {        
+        // If no definition for role found, throw an error.
         const $role = roles[role];
         if (!$role) {
             throw new Error(`Expected definition for role to be defined : ${role}`);
         }
-    
+        
+        // If role.can is not an array, throw an error.
         if (!($role.can instanceof Array)) {
             throw new Error('Expected parameter to be type of array : can');
         }
 
-        $role.inherits.forEach(inherit => {
+        // If role.inherits is not an array, throw an error.
+        if (!($role.inherits instanceof Array)) {
+            throw new Error('Expected parameter to be type of array : inherits');
+        }
+
+        // Iterate inherited roles
+        const inherits = $role.inherits.map(inherit => {
+            
+            // If inherit is not a string, throw an error.
             if (typeof inherit !== 'string') {
                 throw new Error('Expected parameter to be type of string : inherit');
             }
 
+            // If inherit is not defined in roles, throw an error.
             if (!roles[inherit]) {
                 throw new Error(`Expected inherited role to be defined in roles : ${inherit}`)
             }
 
-            inherits.push(inherit);
+            // Inherited role seems to be valid, return it.
+            return inherit;
         });
 
-        $role.can.forEach(permission => {
-            if (typeof permission === 'string') {
-                roleItem.can[permission] = true;
-            }
+        // Iterate permissions of role and check known permission configuration.
+        const can = $role.can.map(permission => {
             
-            if (permission.name && permission.when) {
-                roleItem.can[permission] = permission.when;
+            if (typeof permission === 'string') {
+                // Permission is a string.
+                return { [permission] : true };
             }
 
-            throw new Error(`Can not parse permission definition : ${JSON.stringify(permission)}`);
-        });
+            if (permission.name && permission.when) {
+                // Validate permission.
+                if (typeof permission.name !== 'string') {
+                    throw new Error('Expected parameter to be type of string : name');
+                }
 
+                if (typeof permission.when !== 'function') {
+                    throw new Error('Expected parameter to be type of function : when');
+                }
+
+                // Permission is a function.
+                return { [permission] : permission.when };
+            }
+
+            // Permission configuration is unknown.
+            throw new Error(`Can not parse permission definition : ${JSON.stringify(permission)}`);
+        })
+        .reduce((can, permission) =>  ({ ...can, ...permission }), {});
+
+        // add role to role definitions.
         $roles.set(role, { can, inherits });
     });
 }
