@@ -125,7 +125,3 @@ export default function configure({ roles }) {
         $roles.set(role, { can, inherits });
     });
 }
-
-function parse(role) {
-
-}
