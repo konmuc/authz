@@ -46,6 +46,10 @@
           }
         }
       ]
+    ],
+    "plugins": [
+      "transform-object-rest-spread",
+      "transform-class-properties"
     ]
   },
   "eslintConfig": {
