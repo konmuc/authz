@@ -1,4 +1,5 @@
 import authz, { can } from './authz'
+import { errors } from './errors'
 
 var config = {
     roles: null,
@@ -8,24 +9,22 @@ var config = {
 
 export async function middleware(permission, params = {}) {
     if (!permission) {
-        throw new Error('Expected parameter to be defined : permission');
+        throw new Error(errors.expected.parameter.to.be.defined('permission'));
     }
 
-    let paramsPromise;
+    let paramsFn;
 
-    if (typeof params !== 'function') {
-        paramsPromise = async () => params;
+    if (typeof params === 'object') {
+        paramsFn = async () => params;
+    } else if (typeof params === 'function') {
+        paramsFn = async() => params();
     }
 
-    if (params.then) {
-        paramsPromise = params;
+    if (!paramsFn) {
+        throw new Error(errors.expected.parameter.to.be.defined('paramsFn'));
     }
 
-    if (!paramsPromise) {
-        throw new Error('Expected parameter $params to be defined.');
-    }
-
-    return (req, res, next) => {
+    return async (req, res, next) => {
         try {
             let user = await config.user(req);
             if (!user) {
@@ -42,8 +41,8 @@ export async function middleware(permission, params = {}) {
                 err.status = 403;
                 throw err;
             }
-    
-            let forbidden = await can(role, permission, paramsPromise);
+            let $params = await paramsFn(req);
+            let forbidden = await can(role, permission, $params || {});
             if (!forbidden) {
                 let err = new Error('Access forbidden!');
                 err.status = 403;

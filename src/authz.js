@@ -1,3 +1,6 @@
+/* global Map */
+import { errors } from './errors'
+
 var $roles = new Map();
 
 export function can(role, permission, params = {}) {
@@ -10,12 +13,12 @@ export function can(role, permission, params = {}) {
 
     // Validate, that role is a string.
     if (typeof role !== 'string') {
-        throw new Error('Expected parameter to be type of string : role');
+        throw new Error(errors.expected.parameter.to.be.typeOf.string('role'));
     }
 
     // Validate that permission is a string.
     if (typeof permission !== 'string') {
-        throw new Error('Expected parameter to be type of string : permission');
+        throw new Error(errors.expected.parameter.to.be.typeOf.string('permission'));
     }
     
     // Fetch the role.
@@ -40,20 +43,20 @@ export function can(role, permission, params = {}) {
         try {
             return $permission(params);
         } catch (err) {
-            console.warn(`Failed to evaluate permission : ${permission}`, e);
+            console.warn(`Failed to evaluate permission : ${permission}`, err);
             return false;
         }
     }
 
     // Check inherited roles
-    return $role.inherits.some(inherit => can(inherit, permision, params));
+    return $role.inherits.some(inherit => can(inherit, permission, params));
 }
 
-export default function configure({ roles }) {
+export default function configure({ roles } = { roles : null }) {
     
     // Check if role is an object.
-    if (typeof roles !== 'object') {
-        throw new Error('Expected parameter to be type of object : roles');
+    if (typeof roles !== 'object' || Object.keys(roles).length === 0) {
+        throw new Error(errors.expected.parameter.to.be.typeOf.object('roles'));
     }
 
     // clear role defintions.
@@ -64,30 +67,30 @@ export default function configure({ roles }) {
         // If no definition for role found, throw an error.
         const $role = roles[role];
         if (!$role) {
-            throw new Error(`Expected definition for role to be defined : ${role}`);
+            throw new Error(errors.expected.parameter.to.be.defined(role));
         }
         
         // If role.can is not an array, throw an error.
         if (!($role.can instanceof Array)) {
-            throw new Error('Expected parameter to be type of array : can');
+            throw new Error(errors.expected.parameter.to.be.instanceOf.array('can'));
         }
 
         // If role.inherits is not an array, throw an error.
         if (!($role.inherits instanceof Array)) {
-            throw new Error('Expected parameter to be type of array : inherits');
+            throw new Error(errors.expected.parameter.to.be.instanceOf.array('inherits'));
         }
 
         // Iterate inherited roles
-        const inherits = $role.inherits.map(inherit => {
+        const inherits = ($role.inherits).map(inherit => {
             
             // If inherit is not a string, throw an error.
             if (typeof inherit !== 'string') {
-                throw new Error('Expected parameter to be type of string : inherit');
+                throw new Error(errors.expected.parameter.to.be.typeOf.string('inherit'));
             }
 
             // If inherit is not defined in roles, throw an error.
             if (!roles[inherit]) {
-                throw new Error(`Expected inherited role to be defined in roles : ${inherit}`)
+                throw new Error(errors.expected.inherited.role.to.be.defined(inherit))
             }
 
             // Inherited role seems to be valid, return it.
@@ -102,22 +105,22 @@ export default function configure({ roles }) {
                 return { [permission] : true };
             }
 
-            if (permission.name && permission.when) {
+            if (permission && permission.name && permission.when) {
                 // Validate permission.
                 if (typeof permission.name !== 'string') {
-                    throw new Error('Expected parameter to be type of string : name');
+                    throw new Error(errors.expected.parameter.to.be.typeOf.string('name'));
                 }
 
                 if (typeof permission.when !== 'function') {
-                    throw new Error('Expected parameter to be type of function : when');
+                    throw new Error(errors.expected.parameter.to.be.typeOf.function('when'));
                 }
 
                 // Permission is a function.
-                return { [permission] : permission.when };
+                return { [permission.name] : permission.when };
             }
 
             // Permission configuration is unknown.
-            throw new Error(`Can not parse permission definition : ${JSON.stringify(permission)}`);
+            throw new Error(errors.can.not.parse.permission(permission));
         })
         .reduce((can, permission) =>  ({ ...can, ...permission }), {});
 
