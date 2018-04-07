@@ -1,4 +1,5 @@
-import authz , { can } from '../../src/authz';
+/* global intern */
+import authz, { can } from '../../src/authz';
 import { errors } from '../../src/errors';
 
 const { assert } = intern.getPlugin('chai');
