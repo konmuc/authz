@@ -1,6 +1,6 @@
 {
   "name": "@konmuc/authz",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "Authorization layer for konmuc website.",
   "main": "index.js",
   "scripts": {
