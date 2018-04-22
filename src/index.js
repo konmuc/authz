@@ -7,9 +7,13 @@ var config = {
     role: async req => req.user && req.user.role
 };
 
-export async function middleware(permission, params = {}) {
+export function middleware(permission, params = {}) {
     if (!permission) {
         throw new Error(errors.expected.parameter.to.be.defined('permission'));
+    }
+
+    if (typeof permission !== 'string') {
+        throw new Error(errors.expected.parameter.to.be.typeOf.string('permission'));
     }
 
     let paramsFn;
@@ -17,7 +21,7 @@ export async function middleware(permission, params = {}) {
     if (typeof params === 'object') {
         paramsFn = async () => params;
     } else if (typeof params === 'function') {
-        paramsFn = async() => params();
+        paramsFn = async(req) => await params(req);
     }
 
     if (!paramsFn) {
@@ -29,26 +33,32 @@ export async function middleware(permission, params = {}) {
             let user = await config.user(req);
             if (!user) {
                 console.error('No user found!');
-                let err = new Error('Access forbidden!');
+                let err = new Error(errors.access.forbidden);
                 err.status = 403;
                 throw err; 
             }
     
             let role = await config.role(req);
             if (!role) {
-                console.error(`No role found for ${user}!`);
-                let err = new Error('Access forbidden!');
+                console.error(`No role found for ${JSON.stringify(user)}!`);
+                let err = new Error(errors.access.forbidden);
                 err.status = 403;
                 throw err;
             }
+
             let $params = await paramsFn(req);
-            let forbidden = await can(role, permission, $params || {});
+
+            $params = Object.assign({
+                user: user,
+                role: role
+            }, $params);
+
+            let forbidden = await can(role, permission, $params);
             if (!forbidden) {
-                let err = new Error('Access forbidden!');
+                let err = new Error(errors.access.forbidden);
                 err.status = 403;
                 throw err;
             }
-            
             next();
         } catch (err) {
             next(err);
@@ -56,14 +66,16 @@ export async function middleware(permission, params = {}) {
     };
 }
 
-export default function configure({...custom } = config) {
+export default function configure(custom) {
+
     config = { ...config, ...custom };
 
     if (!config.roles) {
-        throw new Error('Expected parameter to be defined : roles');
+        throw new Error(errors.expected.parameter.to.be.defined('roles'));
     }
+
     if (typeof config.roles !== 'object') {
-        throw new Error('Expected parameter roles to be type of object.');
+        throw new Error(errors.expected.parameter.to.be.typeOf.object('roles'));
     }
 
     authz(config);
