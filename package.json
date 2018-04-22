@@ -12,7 +12,7 @@
     "pretest": "npm run build && mkdir -p dist/tests && babel tests -s -D -d dist/tests",
     "test": "node_modules/.bin/intern",
     "ci": "npm run test && node_modules/.bin/codecov",
-    "prepublishOnly": "npm run build && cp package.json dist/src/package.json && cp README.md dist/src/README.md"
+    "prepublishOnly": "npm run test && npm run build && cp package.json dist/src/package.json && cp README.md dist/src/README.md"
   },
   "repository": {
     "type": "git",
