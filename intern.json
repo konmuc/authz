@@ -1,5 +1,12 @@
 {
     "suites": "dist/tests/unit/**/*.js",
-    "environments": ["node"],
+    "environments": [ "node" ],
+    "coverage": [ "dist/src/**/*.js" ],
+    "reporters": [
+        "runner",
+        {
+          "name": "lcov"
+        }
+    ],
     "instrumenterOptions": { "esModules": true }
 }
