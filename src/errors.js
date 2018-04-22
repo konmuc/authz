@@ -31,5 +31,8 @@ export const errors = {
                 permission: (permission) => `Can not parse permission definition : ${JSON.stringify(permission)}`
             }
         }
+    },
+    access: {
+        forbidden: 'Access forbidden!'
     }
 };
