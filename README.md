@@ -1,4 +1,9 @@
 # authz
+
+[![Build Status](https://travis-ci.org/konmuc/authz.png?branch=master)](https://travis-ci.org/konmuc/authz)
+[![npm version](https://badge.fury.io/js/%40konmuc%2Fauthz.svg)](https://badge.fury.io/js/%40konmuc%2Fauthz.svg)
+[![codecov.io](https://codecov.io/gh/konmuc/authz/branch/master/graphs/badge.svg?branch=master)](https://codecov.io/github/konmuc/authz?branch=master)
+
 The authorization layer for the konmuc website.
 
 > Warning: This is work in progress
