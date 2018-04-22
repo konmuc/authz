@@ -1,8 +1,15 @@
 /* global Map */
 import { errors } from './errors'
 
-var $roles = new Map();
+const $roles = new Map();
 
+/**
+ * Allows to verify, if a user has a specific permission.
+ * 
+ * @param {String|String[]} role The role or roles to check.
+ * @param {String} permission The required permission. 
+ * @param {any} params Additional params, which will be passed to a permission function.
+ */
 export function can(role, permission, params = {}) {
 
     // First some validations.
@@ -52,8 +59,12 @@ export function can(role, permission, params = {}) {
     return $role.inherits.some(inherit => can(inherit, permission, params));
 }
 
-export default function configure({ roles } = { roles : null }) {
+export default function configure({ roles }) {
     
+    if (roles == null) {
+        throw new Error(errors.expected.parameter.to.be.defined('roles'));
+    }
+
     // Check if role is an object.
     if (typeof roles !== 'object' || Object.keys(roles).length === 0) {
         throw new Error(errors.expected.parameter.to.be.typeOf.object('roles'));
