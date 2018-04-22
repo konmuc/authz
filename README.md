@@ -1,5 +1,5 @@
 # authz
-The authoriztation layer for the konmuc website.
+The authorization layer for the konmuc website.
 
 > Warning: This is work in progress
 
